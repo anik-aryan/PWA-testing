@@ -1,27 +1,24 @@
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('👍 beforeinstallprompt fired');
   e.preventDefault();
   deferredPrompt = e;
   document.getElementById('installBtn').style.display = 'block';
 });
 
-document.getElementById('installBtn').addEventListener('click', () => {
-  if (deferredPrompt) {
+document.getElementById('installBtn')
+  .addEventListener('click', async () => {
+    if (!deferredPrompt) return;
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(choiceResult => {
-      if (choiceResult.outcome === 'accepted') {
-        console.log('App installed');
-      } else {
-        console.log('User dismissed the install prompt');
-      }
-      deferredPrompt = null;
-    });
-  }
-});
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(outcome === 'accepted' ? '✅ App installed' : '❌ Install dismissed');
+    deferredPrompt = null;
+  });
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./service-worker.js')
-    .then(() => console.log('Service Worker Registered'))
-    .catch(err => console.error('SW registration failed:', err));
+    .then(() => console.log('✔ SW registered'))
+    .catch(err => console.error('❌ SW registration failed:', err));
 }
+
